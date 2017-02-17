@@ -122,7 +122,7 @@ void SM3_Init (SM3_CTX *c) {
     c->s.w[5] = 0x163138aa;
     c->s.w[6] = 0xe38dee4d;
     c->s.w[7] = 0xb0fb0e4e;
-    c->len = 0;
+    c->len    = 0;
 }
 
 /************************************************
@@ -130,9 +130,9 @@ void SM3_Init (SM3_CTX *c) {
 * update state with input
 *
 ************************************************/
-void SM3_Update (SM3_CTX *c, void *in, size_t len) {
+void SM3_Update (SM3_CTX *c, void *in, uint32_t len) {
     uint8_t *p = (uint8_t*)in;
-    size_t r, idx;
+    uint32_t r, idx;
     
     // get buffer index
     idx = c->len & SM3_CBLOCK - 1;

@@ -31,6 +31,7 @@
 #define SM3_H
 
 #include <stdint.h>
+#include <stdlib.h>
 
 #define U8V(v)  ((uint8_t)(v)  & 0xFFU)
 #define U16V(v) ((uint16_t)(v) & 0xFFFFU)
@@ -69,7 +70,8 @@
    (ROTL64(v, 56) & 0xFF000000FF000000ULL))
 #else
 #define SWAP32(v) _byteswap_ulong(v)  
-#define SWAP64(v) _byteswap_uint64(v) 
+#define SWAP64(v) _byteswap_uint64(v)
+ 
 #define memcpy(x,y,z) __movsb(x,y,z) 
 #define memset(x,y,z) __stosb(x,y,z) 
 #endif
@@ -82,7 +84,7 @@
 
 #pragma pack(push, 1)
 typedef struct _SM3_CTX {
-  uint32_t len;
+  uint64_t len;
   union {
     uint8_t  b[SM3_DIGEST_LENGTH];
     uint32_t w[SM3_DIGEST_LENGTH/4];
