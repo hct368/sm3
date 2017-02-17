@@ -82,6 +82,8 @@
 
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 
+#define XCHG(x, y) (t) = (x); (x) = (y); (y) = (t);
+
 #pragma pack(push, 1)
 typedef struct _SM3_CTX {
   uint64_t len;
