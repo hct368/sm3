@@ -3,7 +3,7 @@ SM3 Cryptographic Hash
 
 Designers         Chinese Government
 First published   2010
-Digest sizes      256, 512
+Digest sizes      256
 Design            Merkle–Damgård construction
 
   Copyright (C) 2017 Odzhan. All Rights Reserved.
