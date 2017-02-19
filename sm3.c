@@ -73,7 +73,6 @@ void SM3_Transform (SM3_CTX *ctx)
       y ^= w[i- 6];
       
       w[i] =  P1(x) ^ y; 
-      printf ("%08x ", w[i]);
     }
 
     // compression function
@@ -101,8 +100,7 @@ void SM3_Transform (SM3_CTX *ctx)
       h = g;
       g = ROTL32(f, 19);
       f = e;
-      e = P0(tt2);  
-      printf ("\n%08x %08x %08x %08x", a, b, c, d);
+      e = P0(tt2); 
     }
     
     // Davies–Meyer idea for compression function
