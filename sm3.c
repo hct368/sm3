@@ -143,6 +143,8 @@ void SM3_Update (SM3_CTX *ctx, void *in, uint32_t len) {
     uint8_t *p = (uint8_t*)in;
     uint32_t r, idx;
     
+    if (len==0) return;
+    
     // get buffer index
     idx = ctx->len & SM3_CBLOCK - 1;
     
