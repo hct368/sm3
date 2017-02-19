@@ -27,11 +27,11 @@ int main(int argc, char *argv[])
 {
   SM3_CTX ctx;
   int     i;
-  uint8_t out[32];  
+  uint8_t out[32]={0};  
   
   SM3_Init(&ctx);
   SM3_Update(&ctx, argv[1], strlen(argv[1]));
-  SM3_Final(out, &ctx);
+  SM3_Finalx(out, &ctx);
   
   printf ("\nSM3 = ");
   for (i=0; i<32; i++) {

@@ -30,7 +30,7 @@
 #include "sm3.h"
 
 #define  F(x, y, z) (((x) ^ (y) ^ (z)))
-#define FF(x, y, z) (((x) & (y)) ^ ((x) & (z)) ^ ((y) & (z))) 
+#define FF(x, y, z) (((x) & (y)) | ((x) & (z)) | ((y) & (z))) 
 #define GG(x, y, z) ((z) ^ ((x) & ((y) ^ (z))))
 
 #define P0(x) x ^ ROTL32(x,  9) ^ ROTL32(x, 17)
@@ -43,7 +43,7 @@
 ************************************************/
 void SM3_Transform (SM3_CTX *ctx) 
 {
-    uint32_t tt1, tt2, i, j, t, ss1, ss2, x0, x1, x2;
+    uint32_t tt1, tt2, i, j, t, ss1, ss2, x, y;
     uint32_t w[68], s[8];
 
     #define a s[0]
@@ -56,7 +56,7 @@ void SM3_Transform (SM3_CTX *ctx)
     #define h s[7]
     
     // load state into local buffer
-    memcpy(&s[0], &ctx->s.w[0], 8*4);
+    memcpy((uint8_t*)&s[0], (uint8_t*)&ctx->s.w[0], 8*4);
     
     // load data in big endian format
     for (i=0; i<16; i++) {
@@ -65,45 +65,47 @@ void SM3_Transform (SM3_CTX *ctx)
 
     // expand message
     for (i=16; i<68; i++) {
-      tt1 = ROTL32(w[i-3], 15);
-      tt2 = ROTL32(w[i-13], 7);
+      x = ROTL32(w[i- 3], 15);
+      y = ROTL32(w[i-13],  7);
       
-      tt1 ^= w[i-16];
-      tt1 ^= w[i- 9];
-      tt2 ^= w[i- 6];
+      x ^= w[i-16];
+      x ^= w[i- 9];
+      y ^= w[i- 6];
       
-      w[i] =  P1(tt1) ^ tt2; 
+      w[i] =  P1(x) ^ y; 
+      printf ("%08x ", w[i]);
     }
 
-    // permute
+    // compression function
     for (i=0; i<64; i++) {
       t  = (i < 16) ? 0x79cc4519 : 0x7a879d8a;
       
       ss2 = ROTL32(a, 12);      
       ss1 = ROTL32(ss2 + e + ROTL32(t, i), 7);
       ss2 ^= ss1;
-      x2 = w[i];
       
-      tt1 = d + ss2 + (x2 ^ w[i+4]);
-      tt2 = h + ss1 + x2;
-      x0 = b; x1 = f;
+      tt1 = d + ss2 + (w[i] ^ w[i+4]);
+      tt2 = h + ss1 + w[i];
       
       if (i < 16) {
-        tt1 += F(a, x0, c);
-        tt2 += F(e, x1, g);
+        tt1 += F(a, b, c);
+        tt2 += F(e, f, g);
       } else {
-        tt1 += FF(a, x0, c);
-        tt2 += GG(e, x1, g);       
+        tt1 += FF(a, b, c);
+        tt2 += GG(e, f, g);       
       }
       d = c;
-      c = ROTL32(x0, 9);
+      c = ROTL32(b, 9);
       b = a;
       a = tt1;
       h = g;
-      g = ROTL32(x1, 19);
+      g = ROTL32(f, 19);
       f = e;
       e = P0(tt2);  
+      printf ("\n%08x %08x %08x %08x", a, b, c, d);
     }
+    
+    // Davies–Meyer idea for compression function
     for (i=0; i<8; i++) {
       ctx->s.w[i] ^= s[i];
     }    
@@ -166,7 +168,7 @@ void SM3_Update (SM3_CTX *ctx, void *in, uint32_t len) {
 * finalize.
 *
 ************************************************/
-void SM3_Final (void* dgst, SM3_CTX *ctx)
+void SM3_Final (void *out, SM3_CTX *ctx)
 {
     int i;
     
@@ -189,6 +191,6 @@ void SM3_Final (void* dgst, SM3_CTX *ctx)
     
     // return result
     for (i=0; i<SM3_LBLOCK; i++) {
-      ((uint32_t*)dgst)[i] = SWAP32(ctx->s.w[i]);
+      ((uint32_t*)out)[i] = SWAP32(ctx->s.w[i]);
     }
 }

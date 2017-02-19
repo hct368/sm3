@@ -38,6 +38,8 @@
 #define U32V(v) ((uint32_t)(v) & 0xFFFFFFFFUL)
 #define U64V(v) ((uint64_t)(v) & 0xFFFFFFFFFFFFFFFFULL)
 
+#ifdef INTRIN
+
 #define ROTL8(v, n) \
   (U8V((v) << (n)) | ((v) >> (8 - (n))))
 
@@ -55,7 +57,6 @@
 #define ROTR32(v, n) ROTL32(v, 32 - (n))
 #define ROTR64(v, n) ROTL64(v, 64 - (n))
 
-#ifdef INTRIN
 #define SWAP16(v) \
   ROTL16(v, 8)
 
@@ -69,11 +70,15 @@
    (ROTL64(v, 40) & 0x00FF000000FF0000ULL) | \
    (ROTL64(v, 56) & 0xFF000000FF000000ULL))
 #else
+#include <intrin.h>    
+#pragma intrinsic (_lrotr, _lrotl)
 #define SWAP32(v) _byteswap_ulong(v)  
 #define SWAP64(v) _byteswap_uint64(v)
  
 #define memcpy(x,y,z) __movsb(x,y,z) 
 #define memset(x,y,z) __stosb(x,y,z) 
+
+#define ROTL32(x, y) _lrotl(x, y)
 #endif
    
 #define SM3_CBLOCK        64
@@ -108,6 +113,10 @@ extern "C" {
   void SM3_Update(SM3_CTX*, void*, uint32_t);
   void SM3_Final(void*, SM3_CTX*);
 
+  void SM3_Initx(SM3_CTX*);
+  void SM3_Updatex(SM3_CTX*, void*, uint32_t);
+  void SM3_Finalx(void*, SM3_CTX*);
+  
 #ifdef __cplusplus
 }
 #endif

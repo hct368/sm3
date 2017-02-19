@@ -9,21 +9,50 @@
 INCLUDELIB LIBCMT
 INCLUDELIB OLDNAMES
 
+PUBLIC	??_C@_0BF@FOLEAJAI@?6?$CF08x?5?$CF08x?5?$CF08x?5?$CF08x?$AA@ ; `string'
+PUBLIC	??_C@_05ECIELPFL@?$CF08x?5?$AA@			; `string'
 PUBLIC	_SM3_Transform
+EXTRN	_printf:PROC
+;	COMDAT ??_C@_0BF@FOLEAJAI@?6?$CF08x?5?$CF08x?5?$CF08x?5?$CF08x?$AA@
+; File c:\hub\sm3\sm3.c
+CONST	SEGMENT
+??_C@_0BF@FOLEAJAI@?6?$CF08x?5?$CF08x?5?$CF08x?5?$CF08x?$AA@ DB 0aH, '%08'
+	DB	'x %08x %08x %08x', 00H			; `string'
+CONST	ENDS
+;	COMDAT ??_C@_05ECIELPFL@?$CF08x?5?$AA@
+CONST	SEGMENT
+??_C@_05ECIELPFL@?$CF08x?5?$AA@ DB '%08x ', 00H		; `string'
 ; Function compile flags: /Ogspy
+CONST	ENDS
 ;	COMDAT _SM3_Transform
 _TEXT	SEGMENT
 _w$ = -304						; size = 272
 _s$ = -32						; size = 32
-tv416 = 8						; size = 4
+tv352 = 8						; size = 4
 _ctx$ = 8						; size = 4
 _SM3_Transform PROC					; COMDAT
-; File c:\hub\sm3\sm3.c
-; Line 45
+
+; 45   : {
+
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 304				; 00000130H
-; Line 59
+
+; 46   :     uint32_t tt1, tt2, i, j, t, ss1, ss2, x, y;
+; 47   :     uint32_t w[68], s[8];
+; 48   : 
+; 49   :     #define a s[0]
+; 50   :     #define b s[1]
+; 51   :     #define c s[2]
+; 52   :     #define d s[3]
+; 53   :     #define e s[4]
+; 54   :     #define f s[5]
+; 55   :     #define g s[6]
+; 56   :     #define h s[7]
+; 57   :     
+; 58   :     // load state into local buffer
+; 59   :     memcpy((uint8_t*)&s[0], (uint8_t*)&ctx->s.w[0], 8*4);
+
 	mov	eax, DWORD PTR _ctx$[ebp]
 	push	ebx
 	push	esi
@@ -32,13 +61,19 @@ _SM3_Transform PROC					; COMDAT
 	push	32					; 00000020H
 	lea	edi, DWORD PTR _s$[ebp]
 	pop	ecx
-	mov	DWORD PTR tv416[ebp], esi
+	mov	DWORD PTR tv352[ebp], esi
 	rep movsb
-; Line 62
+
+; 60   :     
+; 61   :     // load data in big endian format
+; 62   :     for (i=0; i<16; i++) {
+
 	xor	ecx, ecx
 	add	eax, 40					; 00000028H
 $LL14@SM3_Transf:
-; Line 63
+
+; 63   :       w[i] = SWAP32(ctx->buf.w[i]);
+
 	mov	edx, DWORD PTR [eax]
 	bswap	edx
 	mov	DWORD PTR _w$[ebp+ecx*4], edx
@@ -46,137 +81,224 @@ $LL14@SM3_Transf:
 	add	eax, 4
 	cmp	ecx, 16					; 00000010H
 	jb	SHORT $LL14@SM3_Transf
-; Line 67
+
+; 64   :     }
+; 65   : 
+; 66   :     // expand message
+; 67   :     for (i=16; i<68; i++) {
+
 	push	52					; 00000034H
-	lea	eax, DWORD PTR _w$[ebp]
-	pop	edx
+	lea	esi, DWORD PTR _w$[ebp]
+	pop	edi
 $LL11@SM3_Transf:
-; Line 68
-	mov	ecx, DWORD PTR [eax+52]
-; Line 69
-	mov	esi, DWORD PTR [eax+12]
-	rol	ecx, 15					; 0000000fH
-; Line 72
-	xor	ecx, DWORD PTR [eax+28]
-	xor	ecx, DWORD PTR [eax]
-	rol	esi, 7
-; Line 75
-	mov	edi, ecx
-	rol	edi, 15					; 0000000fH
-	xor	esi, edi
-	mov	edi, ecx
-	ror	edi, 9
-	xor	esi, edi
-	xor	esi, DWORD PTR [eax+40]
-	add	eax, 4
-	xor	esi, ecx
-	dec	edx
-	mov	DWORD PTR [eax+60], esi
+
+; 68   :       x = ROTL32(w[i- 3], 15);
+
+	mov	eax, DWORD PTR [esi+52]
+
+; 69   :       y = ROTL32(w[i-13],  7);
+
+	mov	ecx, DWORD PTR [esi+12]
+	rol	eax, 15					; 0000000fH
+
+; 70   :       
+; 71   :       x ^= w[i-16];
+; 72   :       x ^= w[i- 9];
+
+	xor	eax, DWORD PTR [esi+28]
+	xor	eax, DWORD PTR [esi]
+	rol	ecx, 7
+
+; 73   :       y ^= w[i- 6];
+; 74   :       
+; 75   :       w[i] =  P1(x) ^ y; 
+
+	mov	edx, eax
+	rol	edx, 23					; 00000017H
+	xor	ecx, edx
+	mov	edx, eax
+	rol	edx, 15					; 0000000fH
+	xor	ecx, edx
+	xor	ecx, DWORD PTR [esi+40]
+	xor	ecx, eax
+
+; 76   :       printf ("%08x ", w[i]);
+
+	push	ecx
+	push	OFFSET ??_C@_05ECIELPFL@?$CF08x?5?$AA@
+	mov	DWORD PTR [esi+64], ecx
+	call	_printf
+	pop	ecx
+	add	esi, 4
+	dec	edi
+	pop	ecx
 	jne	SHORT $LL11@SM3_Transf
-; Line 79
-	xor	ecx, ecx
-$LL25@SM3_Transf:
-; Line 81
-	mov	edx, DWORD PTR _s$[ebp]
-; Line 84
-	mov	edi, DWORD PTR _w$[ebp+ecx*4]
-; Line 85
-	mov	ebx, DWORD PTR _w$[ebp+ecx*4+16]
-	rol	edx, 12					; 0000000cH
-	cmp	ecx, 16					; 00000010H
+
+; 77   :     }
+; 78   : 
+; 79   :     // compression function
+; 80   :     for (i=0; i<64; i++) {
+
+	xor	ebx, ebx
+$LL8@SM3_Transf:
+
+; 81   :       t  = (i < 16) ? 0x79cc4519 : 0x7a879d8a;
+; 82   :       
+; 83   :       ss2 = ROTL32(a, 12);      
+
+	mov	esi, DWORD PTR _s$[ebp]
+
+; 84   :       ss1 = ROTL32(ss2 + e + ROTL32(t, i), 7);
+; 85   :       ss2 ^= ss1;
+; 86   :       
+; 87   :       tt1 = d + ss2 + (w[i] ^ w[i+4]);
+
+	mov	edi, DWORD PTR _w$[ebp+ebx*4+16]
+	rol	esi, 12					; 0000000cH
+	cmp	ebx, 16					; 00000010H
 	sbb	eax, eax
 	and	eax, -12277873				; ff44a78fH
 	add	eax, 2055708042				; 7a879d8aH
+	mov	cl, bl
 	rol	eax, cl
-	xor	ebx, edi
-	add	ebx, DWORD PTR _s$[ebp+12]
+	mov	ecx, DWORD PTR _w$[ebp+ebx*4]
+	xor	edi, ecx
+	add	edi, DWORD PTR _s$[ebp+12]
 	add	eax, DWORD PTR _s$[ebp+16]
-	add	eax, edx
+
+; 88   :       tt2 = h + ss1 + w[i];
+
+	add	ecx, DWORD PTR _s$[ebp+28]
+	add	eax, esi
 	rol	eax, 7
-	mov	esi, eax
-	xor	esi, edx
-; Line 86
-	mov	edx, DWORD PTR _s$[ebp+28]
+	mov	edx, eax
+	xor	edx, esi
 	add	edx, edi
-	add	esi, ebx
-	add	edx, eax
-; Line 88
-	cmp	ecx, 16					; 00000010H
+	add	ecx, eax
+
+; 89   :       
+; 90   :       if (i < 16) {
+
+	cmp	ebx, 16					; 00000010H
 	jae	SHORT $LN5@SM3_Transf
-; Line 89
+
+; 91   :         tt1 += F(a, b, c);
+
 	mov	eax, DWORD PTR _s$[ebp+8]
 	xor	eax, DWORD PTR _s$[ebp+4]
 	xor	eax, DWORD PTR _s$[ebp]
-	add	esi, eax
-; Line 90
+	add	edx, eax
+
+; 92   :         tt2 += F(e, f, g);
+
 	mov	eax, DWORD PTR _s$[ebp+24]
 	xor	eax, DWORD PTR _s$[ebp+20]
 	xor	eax, DWORD PTR _s$[ebp+16]
-; Line 91
-	jmp	SHORT $LN26@SM3_Transf
+
+; 93   :       } else {
+
+	jmp	SHORT $LN25@SM3_Transf
 $LN5@SM3_Transf:
-; Line 92
+
+; 94   :         tt1 += FF(a, b, c);
+
 	mov	eax, DWORD PTR _s$[ebp+4]
-	xor	eax, DWORD PTR _s$[ebp]
-	mov	edi, DWORD PTR _s$[ebp+4]
+	or	eax, DWORD PTR _s$[ebp]
+	mov	esi, DWORD PTR _s$[ebp+4]
 	and	eax, DWORD PTR _s$[ebp+8]
-	and	edi, DWORD PTR _s$[ebp]
-	xor	eax, edi
-	add	esi, eax
-; Line 93
+	and	esi, DWORD PTR _s$[ebp]
+	or	eax, esi
+	add	edx, eax
+
+; 95   :         tt2 += GG(e, f, g);       
+
 	mov	eax, DWORD PTR _s$[ebp+24]
 	xor	eax, DWORD PTR _s$[ebp+20]
 	and	eax, DWORD PTR _s$[ebp+16]
 	xor	eax, DWORD PTR _s$[ebp+24]
-$LN26@SM3_Transf:
-	add	edx, eax
-; Line 95
+$LN25@SM3_Transf:
+
+; 96   :       }
+; 97   :       d = c;
+; 98   :       c = ROTL32(b, 9);
+; 99   :       b = a;
+; 100  :       a = tt1;
+; 101  :       h = g;
+
+	mov	esi, DWORD PTR _s$[ebp+24]
+	add	ecx, eax
 	mov	eax, DWORD PTR _s$[ebp+8]
+	mov	DWORD PTR _s$[ebp+28], esi
+
+; 102  :       g = ROTL32(f, 19);
+
+	mov	esi, DWORD PTR _s$[ebp+20]
 	mov	DWORD PTR _s$[ebp+12], eax
-; Line 96
 	mov	eax, DWORD PTR _s$[ebp+4]
+
+; 103  :       f = e;
+; 104  :       e = P0(tt2);  
+; 105  :       printf ("\n%08x %08x %08x %08x", a, b, c, d);
+
+	push	DWORD PTR _s$[ebp+12]
 	rol	eax, 9
+	rol	esi, 19					; 00000013H
+	mov	DWORD PTR _s$[ebp+24], esi
+	mov	esi, DWORD PTR _s$[ebp+16]
+	mov	DWORD PTR _s$[ebp+20], esi
 	mov	DWORD PTR _s$[ebp+8], eax
-; Line 97
 	mov	eax, DWORD PTR _s$[ebp]
+	push	DWORD PTR _s$[ebp+8]
+	mov	esi, ecx
+	rol	esi, 17					; 00000011H
+	mov	edi, ecx
+	push	eax
+	rol	edi, 9
+	xor	esi, edi
+	push	edx
+	xor	esi, ecx
+	push	OFFSET ??_C@_0BF@FOLEAJAI@?6?$CF08x?5?$CF08x?5?$CF08x?5?$CF08x?$AA@
 	mov	DWORD PTR _s$[ebp+4], eax
-; Line 99
-	mov	eax, DWORD PTR _s$[ebp+24]
-	mov	DWORD PTR _s$[ebp+28], eax
-; Line 100
-	mov	eax, DWORD PTR _s$[ebp+20]
-	ror	eax, 13					; 0000000dH
-	mov	DWORD PTR _s$[ebp+24], eax
-; Line 101
-	mov	eax, DWORD PTR _s$[ebp+16]
-	mov	DWORD PTR _s$[ebp+20], eax
-	mov	DWORD PTR _s$[ebp], esi
-; Line 102
-	mov	eax, edx
-	ror	eax, 15					; 0000000fH
-	mov	esi, edx
-	rol	esi, 9
-	xor	eax, esi
-	xor	eax, edx
-	inc	ecx
-	mov	DWORD PTR _s$[ebp+16], eax
-	cmp	ecx, 64					; 00000040H
-	jb	$LL25@SM3_Transf
-; Line 104
-	mov	eax, DWORD PTR tv416[ebp]
+	mov	DWORD PTR _s$[ebp], edx
+	mov	DWORD PTR _s$[ebp+16], esi
+	call	_printf
+	add	esp, 20					; 00000014H
+	inc	ebx
+	cmp	ebx, 64					; 00000040H
+	jb	$LL8@SM3_Transf
+
+; 106  :     }
+; 107  :     
+; 108  :     // Davies–Meyer idea for compression function
+; 109  :     for (i=0; i<8; i++) {
+
+	mov	eax, DWORD PTR tv352[ebp]
 	pop	edi
 	pop	esi
 	xor	ecx, ecx
 	pop	ebx
 $LL3@SM3_Transf:
-; Line 105
+
+; 110  :       ctx->s.w[i] ^= s[i];
+
 	mov	edx, DWORD PTR _s$[ebp+ecx*4]
 	xor	DWORD PTR [eax], edx
 	inc	ecx
 	add	eax, 4
 	cmp	ecx, 8
 	jb	SHORT $LL3@SM3_Transf
-; Line 115
+
+; 111  :     }    
+; 112  :     #undef a
+; 113  :     #undef b
+; 114  :     #undef c
+; 115  :     #undef d
+; 116  :     #undef e
+; 117  :     #undef f
+; 118  :     #undef g
+; 119  :     #undef h
+; 120  : }
+
 	leave
 	ret	0
 _SM3_Transform ENDP
@@ -187,9 +309,20 @@ PUBLIC	_SM3_Init
 _TEXT	SEGMENT
 _ctx$ = 8						; size = 4
 _SM3_Init PROC						; COMDAT
-; Line 123
+
+; 128  :     ctx->s.w[0] = 0x7380166f;
+
 	mov	eax, DWORD PTR _ctx$[esp-4]
-; Line 131
+
+; 129  :     ctx->s.w[1] = 0x4914b2b9;
+; 130  :     ctx->s.w[2] = 0x172442d7;
+; 131  :     ctx->s.w[3] = 0xda8a0600;
+; 132  :     ctx->s.w[4] = 0xa96f30bc;
+; 133  :     ctx->s.w[5] = 0x163138aa;
+; 134  :     ctx->s.w[6] = 0xe38dee4d;
+; 135  :     ctx->s.w[7] = 0xb0fb0e4e;
+; 136  :     ctx->len    = 0;
+
 	and	DWORD PTR [eax], 0
 	and	DWORD PTR [eax+4], 0
 	mov	DWORD PTR [eax+8], 1937774191		; 7380166fH
@@ -200,7 +333,9 @@ _SM3_Init PROC						; COMDAT
 	mov	DWORD PTR [eax+28], 372324522		; 163138aaH
 	mov	DWORD PTR [eax+32], -477237683		; e38dee4dH
 	mov	DWORD PTR [eax+36], -1325724082		; b0fb0e4eH
-; Line 132
+
+; 137  : }
+
 	ret	0
 _SM3_Init ENDP
 _TEXT	ENDS
@@ -214,13 +349,25 @@ _r$ = 12						; size = 4
 _in$ = 12						; size = 4
 _len$ = 16						; size = 4
 _SM3_Update PROC					; COMDAT
-; Line 139
+
+; 144  : void SM3_Update (SM3_CTX *ctx, void *in, uint32_t len) {
+
 	push	ebp
 	mov	ebp, esp
 	push	ecx
-; Line 140
+
+; 145  :     uint8_t *p = (uint8_t*)in;
+
 	mov	eax, DWORD PTR _in$[ebp]
-; Line 147
+
+; 146  :     uint32_t r, idx;
+; 147  :     
+; 148  :     // get buffer index
+; 149  :     idx = ctx->len & SM3_CBLOCK - 1;
+; 150  :     
+; 151  :     // update length
+; 152  :     ctx->len += len;
+
 	mov	ecx, DWORD PTR _len$[ebp]
 	push	ebx
 	mov	ebx, DWORD PTR _ctx$[ebp]
@@ -229,13 +376,18 @@ _SM3_Update PROC					; COMDAT
 	and	eax, 63					; 0000003fH
 	add	DWORD PTR [ebx], ecx
 	adc	DWORD PTR [ebx+4], 0
-; Line 149
+
+; 153  :     
+; 154  :     while (len) {
+
 	test	ecx, ecx
 	je	SHORT $LN9@SM3_Update
 	push	esi
 	push	edi
 $LL3@SM3_Update:
-; Line 150
+
+; 155  :       r = MIN(len, SM3_CBLOCK - idx);
+
 	mov	edx, DWORD PTR _len$[ebp]
 	push	64					; 00000040H
 	pop	ecx
@@ -245,24 +397,36 @@ $LL3@SM3_Update:
 	jb	SHORT $LN7@SM3_Update
 	mov	DWORD PTR _r$[ebp], ecx
 $LN7@SM3_Update:
-; Line 151
+
+; 156  :       memcpy (&ctx->buf.b[idx], p, r);
+
 	mov	edx, DWORD PTR _r$[ebp]
 	mov	esi, DWORD PTR _p$[ebp]
 	mov	ecx, edx
-; Line 152
+
+; 157  :       if ((idx + r) < SM3_CBLOCK) break;
+
 	add	edx, eax
 	lea	edi, DWORD PTR [ebx+eax+40]
 	rep movsb
 	cmp	edx, 64					; 00000040H
 	jb	SHORT $LN12@SM3_Update
-; Line 154
+
+; 158  :       
+; 159  :       SM3_Transform (ctx);
+
 	push	ebx
 	call	_SM3_Transform
 	pop	ecx
-; Line 155
+
+; 160  :       len -= r;
+
 	mov	ecx, DWORD PTR _r$[ebp]
 	sub	DWORD PTR _len$[ebp], ecx
-; Line 157
+
+; 161  :       idx = 0;
+; 162  :       p += r;
+
 	add	DWORD PTR _p$[ebp], ecx
 	xor	eax, eax
 	cmp	DWORD PTR _len$[ebp], eax
@@ -272,7 +436,10 @@ $LN12@SM3_Update:
 	pop	esi
 $LN9@SM3_Update:
 	pop	ebx
-; Line 159
+
+; 163  :     }
+; 164  : }
+
 	leave
 	ret	0
 _SM3_Update ENDP
@@ -281,18 +448,28 @@ PUBLIC	_SM3_Final
 ; Function compile flags: /Ogspy
 ;	COMDAT _SM3_Final
 _TEXT	SEGMENT
-_dgst$ = 8						; size = 4
+_out$ = 8						; size = 4
 _ctx$ = 12						; size = 4
 _SM3_Final PROC						; COMDAT
-; Line 167
+
+; 172  : {
+
 	push	ebx
 	push	esi
-; Line 171
+
+; 173  :     int i;
+; 174  :     
+; 175  :     // see what length we have ere..
+; 176  :     uint32_t len=ctx->len & SM3_CBLOCK - 1;
+
 	mov	esi, DWORD PTR _ctx$[esp+4]
 	mov	edx, DWORD PTR [esi]
 	push	edi
 	and	edx, 63					; 0000003fH
-; Line 173
+
+; 177  :     // fill remaining with zeros
+; 178  :     memset (&ctx->buf.b[len], 0, SM3_CBLOCK - len);
+
 	push	64					; 00000040H
 	lea	ebx, DWORD PTR [edx+esi+40]
 	pop	ecx
@@ -300,49 +477,76 @@ _SM3_Final PROC						; COMDAT
 	xor	al, al
 	mov	edi, ebx
 	rep stosb
-; Line 175
+
+; 179  :     // add the end bit
+; 180  :     ctx->buf.b[len] = 0x80;
+
 	mov	BYTE PTR [ebx], 128			; 00000080H
-; Line 177
+
+; 181  :     // if exceeding 56 bytes, transform it
+; 182  :     if (len >= 56) {
+
 	cmp	edx, 56					; 00000038H
 	jb	SHORT $LN4@SM3_Final
-; Line 178
+
+; 183  :       SM3_Transform (ctx);
+
 	push	esi
 	call	_SM3_Transform
 	pop	ecx
-; Line 180
+
+; 184  :       // clear buffer
+; 185  :       memset (ctx->buf.b, 0, SM3_CBLOCK);
+
 	push	64					; 00000040H
 	lea	edi, DWORD PTR [esi+40]
 	xor	al, al
 	pop	ecx
 	rep stosb
 $LN4@SM3_Final:
-; Line 183
+
+; 186  :     }
+; 187  :     // add total bits
+; 188  :     ctx->buf.q[7] = SWAP64((uint64_t)ctx->len * 8);
+
 	mov	eax, DWORD PTR [esi]
 	mov	ecx, DWORD PTR [esi+4]
 	shld	ecx, eax, 3
 	shl	eax, 3
 	bswap	eax
 	bswap	ecx
-; Line 185
+
+; 189  :     // compress
+; 190  :     SM3_Transform(ctx);
+
 	push	esi
 	mov	DWORD PTR [esi+96], ecx
 	mov	DWORD PTR [esi+100], eax
 	call	_SM3_Transform
 	pop	ecx
-; Line 188
+
+; 191  :     
+; 192  :     // return result
+; 193  :     for (i=0; i<SM3_LBLOCK; i++) {
+
 	xor	ecx, ecx
 	lea	eax, DWORD PTR [esi+8]
 $LL3@SM3_Final:
-; Line 189
+
+; 194  :       ((uint32_t*)out)[i] = SWAP32(ctx->s.w[i]);
+
 	mov	edx, DWORD PTR [eax]
-	mov	esi, DWORD PTR _dgst$[esp+8]
+	mov	esi, DWORD PTR _out$[esp+8]
 	bswap	edx
 	mov	DWORD PTR [esi+ecx*4], edx
 	inc	ecx
 	add	eax, 4
 	cmp	ecx, 8
 	jl	SHORT $LL3@SM3_Final
-; Line 191
+
+; 195  :     }
+; 196  : }
+
 	pop	edi
 	pop	esi
 	pop	ebx

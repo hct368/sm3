@@ -1,5 +1,5 @@
 ;
-;  Copyright © 2015 Odzhan. All Rights Reserved.
+;  Copyright © 2017 Odzhan. All Rights Reserved.
 ;
 ;  Redistribution and use in source and binary forms, with or without
 ;  modification, are permitted provided that the following conditions are
@@ -30,7 +30,7 @@
 ; -----------------------------------------------
 ; SM3-256 cryptographic hash in x86 assembly
 ;
-; size: 389 bytes
+; size: 469 bytes
 ;
 ; global calls use cdecl convention
 ;
@@ -46,6 +46,18 @@ struc SM3_CTX
   len    resd 2
   state  resb SM3_DIGEST_LENGTH
   buffer resb SM3_CBLOCK
+endstruc
+
+struc pushad_t
+  _edi resd 1
+  _esi resd 1
+  _ebp resd 1
+  _esp resd 1
+  _ebx resd 1
+  _edx resd 1
+  _ecx resd 1
+  _eax resd 1
+  .size:
 endstruc
 
 %ifndef BIN
@@ -73,7 +85,7 @@ _SM3_Initx:
     dd      0xe38dee4d, 0xb0fb0e4e
 s3i_l0
     pop     esi
-    push    8*4
+    push    8
     pop     ecx
     rep     movsd    
     popad
@@ -190,6 +202,7 @@ swap_words:
 
 _SM3_Transformx:
     pushad
+
     ; load state into esi
     lea     esi, [ebx+state]
     push    esi  ; save for later
@@ -206,7 +219,7 @@ _SM3_Transformx:
     pop     ecx
     rep     movsd
     
-    ; load data in big endian format
+    ; store message in big endian format
     mov     cl, 16
 s3t_l0:
     lodsd
@@ -242,13 +255,13 @@ s3t_l1:
     loop    s3t_l1
     
     ; permute message
-s3t_l2:
     mov     edi, esp
+s3t_l2:
     ; t  = (i < 16) ? 0x79cc4519 : 0x7a879d8a;
-    mov     eax, 0x79cc4519
-    mov     edx, 0x7a879d8a
     cmp     ecx, 16
-    cmovae  eax, edx
+	  sbb	    eax, eax
+	  and	    eax, 0x79cc4519 - 0x7a879d8a
+	  add	    eax, 0x7a879d8a
     ; ss2 = ROTL32(a, 12);
     mov     ebx, _a
     rol     ebx, 12
@@ -260,37 +273,45 @@ s3t_l2:
     ; ss2 ^= ss1;
     xor     ebx, eax
     ; tt1 = d + ss2 + (w[i] ^ w[i+4]);
+    mov     ebp, eax         ; save ss1
+    mov     esi, [edi+4*ecx+32]       ; esi = w[i]
+    mov     edx, esi         ; save w[i]
+    xor     esi, [edi+4*ecx+32+16]    ; esi ^= w[i+4]
+    add     esi, _d
+    lea     eax, [esi+ebx]   ; set tt1   
+    ; tt2 = h + ss1 + w[i];
+    lea     ebx, [edx+ebp]
+    add     ebx, _h
+    ; if (i < 16) {
     cmp     ecx, 16
     jae     s3t_l3
     ; tt1 += F(a, b, c);
-    mov     edx, _a
+    mov     edx, _c
     xor     edx, _b
-    xor     edx, _c
+    xor     edx, _a
     add     eax, edx
     ; tt2 += F(e, f, g);
-    mov     edx, _e
+    mov     edx, _g
     xor     edx, _f
-    xor     edx, _g
+    xor     edx, _e
     add     ebx, edx
     jmp     s3t_l4
 s3t_l3:    
-    ; tt1 += FF(a, b, c);    
-    mov     edx, _f
-    mov     ebp, _f
-    and     edx, _h     
-    and     ebp, _g
-    xor     edx, ebp
-    mov     ebp, _g
-    and     ebp, _h
-    xor     edx, ebp    
+    ; tt1 += FF(a, b, c);
+    mov     edx, _b
+    or      edx, _a
+    mov     ebp, _b
+    and     edx, _c
+    and     ebp, _a
+    or      edx, ebp
+    add     eax, edx    
     ; tt2 += GG(e, f, g);
-    xor     edx, _e
-    and     ebp, _f
-    xor     edx, _g  
-    ; g = ROTL32(f, 19);
-    mov     edx, _f
-    rol     edx, 19
-    mov     _g, edx
+    mov     edx, _g
+    xor     edx, _f
+    and     edx, _e
+    xor     edx, _g 
+    add     ebx, edx
+s3t_l4: 
     ; d = c;
     mov     edx, _c
     mov     _d, edx
@@ -309,6 +330,7 @@ s3t_l3:
     ; g = ROTL32(f, 19);
     mov     edx, _f
     rol     edx, 19
+    mov     _g, edx
     ; f = e;
     mov     edx, _e
     mov     _f, edx
@@ -320,13 +342,13 @@ s3t_l3:
     rol     edx, 17-9
     xor     ebx, edx
     mov     _e, ebx    
-s3t_l4    
+  
     inc     ecx
     cmp     ecx, 64    
     jnz     s3t_l2
 
     mov     esi, esp
-    lea     edx, [esi+ecx*8]
+    lea     esp, [esi+ecx*8]
 
     pop     edi
     mov     cl, 8
@@ -335,7 +357,6 @@ s3t_l5:
     xor     eax, [edi]
     stosd
     loop    s3t_l5
-    mov     esp, edx
     popad
     ret
     
