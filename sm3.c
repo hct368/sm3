@@ -72,7 +72,7 @@ void SM3_Transform (SM3_CTX *ctx)
       x ^= w[i- 9];
       y ^= w[i- 6];
       
-      w[i] =  P1(x) ^ y; 
+      w[i] = P1(x) ^ y; 
     }
 
     // compression function
@@ -172,14 +172,14 @@ void SM3_Final (void *out, SM3_CTX *ctx)
 {
     int i;
     
-    // see what length we have ere..
-    uint32_t len=ctx->len & (SM3_CBLOCK - 1);
+    // get the current index
+    uint32_t idx=ctx->len & (SM3_CBLOCK - 1);
     // fill remaining with zeros
-    memset (&ctx->buf.b[len], 0, SM3_CBLOCK - len);
+    memset (&ctx->buf.b[idx], 0, SM3_CBLOCK - idx);
     // add the end bit
-    ctx->buf.b[len] = 0x80;
+    ctx->buf.b[idx] = 0x80;
     // if exceeding 56 bytes, transform it
-    if (len >= 56) {
+    if (idx >= 56) {
       SM3_Transform (ctx);
       // clear buffer
       memset (ctx->buf.b, 0, SM3_CBLOCK);

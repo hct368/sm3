@@ -34,8 +34,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(_MSC_VER) || defined(__INTEL_COMPILER)  
-  #if defined(INTRIN)
+#if defined(_MSC_VER) || defined(__INTEL_COMPILER)
     #if defined(__INTEL_COMPILER)
       #define SWAP32(v) _bswap(v)
       #define SWAP64(v) _bswap64(v)
@@ -48,7 +47,7 @@
     #define memset(x,y,z) __stosb(x,y,z) 
 
     #define ROTL32(x, y) _lrotl(x, y)
-  #endif
+    #define ROTR32(x, y) _lrotr(x, y)
 #else
 
   #define U8V(v)  ((uint8_t)(v)  & 0xFFU)
