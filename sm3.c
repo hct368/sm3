@@ -43,7 +43,7 @@
 ************************************************/
 void SM3_Transform (SM3_CTX *ctx) 
 {
-    uint32_t tt1, tt2, i, j, t, ss1, ss2, x, y;
+    uint32_t tt1, tt2, i, t, ss1, ss2, x, y;
     uint32_t w[68], s[8];
 
     #define a s[0]
@@ -146,7 +146,7 @@ void SM3_Update (SM3_CTX *ctx, void *in, uint32_t len) {
     if (len==0) return;
     
     // get buffer index
-    idx = ctx->len & SM3_CBLOCK - 1;
+    idx = ctx->len & (SM3_CBLOCK - 1);
     
     // update length
     ctx->len += len;
@@ -173,7 +173,7 @@ void SM3_Final (void *out, SM3_CTX *ctx)
     int i;
     
     // see what length we have ere..
-    uint32_t len=ctx->len & SM3_CBLOCK - 1;
+    uint32_t len=ctx->len & (SM3_CBLOCK - 1);
     // fill remaining with zeros
     memset (&ctx->buf.b[len], 0, SM3_CBLOCK - len);
     // add the end bit

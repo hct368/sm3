@@ -63,10 +63,10 @@ endstruc
 %ifndef BIN
   global SM3_Initx
   global _SM3_Initx
-  
+
   global SM3_Updatex
   global _SM3_Updatex
-  
+
   global SM3_Finalx
   global _SM3_Finalx
 %endif
@@ -79,18 +79,18 @@ _SM3_Initx:
     stosd
     stosd
     call    s3i_l0
-    dd      0x7380166f, 0x4914b2b9 
+    dd      0x7380166f, 0x4914b2b9
     dd      0x172442d7, 0xda8a0600
-    dd      0xa96f30bc, 0x163138aa 
+    dd      0xa96f30bc, 0x163138aa
     dd      0xe38dee4d, 0xb0fb0e4e
 s3i_l0
     pop     esi
     push    8
     pop     ecx
-    rep     movsd    
+    rep     movsd
     popad
     ret
-    
+
 ; update context
 SM3_Updatex:
 _SM3_Updatex:
@@ -106,12 +106,12 @@ _SM3_Updatex:
     ; idx = ctx->len & SM3_CBLOCK - 1;
     mov    edx, [ebx+len]
     and    edx, SM3_CBLOCK - 1
-    
+
     ; limit of (2^32)-1 bytes each update
     ; ctx->len += len;
     add    dword[ebx+len+0], eax
     adc    dword[ebx+len+4], 0
-    
+
 upd_l1:
     ; r = (len >= (SM3_CBLOCK - idx)) ? SM3_CBLOCK - idx : len;
     push   SM3_CBLOCK
@@ -206,19 +206,19 @@ _SM3_Transformx:
     ; load state into esi
     lea     esi, [ebx+state]
     push    esi  ; save for later
-    
+
     ; allocate 512 bytes
     push    64
     pop     ecx
     shl     ecx, 3
     sub     esp, ecx
-    
+
     ; load state into local buffer
     mov     edi, esp
     push    8
     pop     ecx
     rep     movsd
-    
+
     ; store message in big endian format
     mov     cl, 16
 s3t_l0:
@@ -232,16 +232,16 @@ s3t_l0:
 s3t_l1:
     ; x = ROTL32(w[i-3], 15);
     mov     eax, [edi- 3*4]
-    rol     eax, 15    
+    rol     eax, 15
     ; y = ROTL32(w[i-13], 7);
     mov     ebx, [edi-13*4]
     rol     ebx, 7
-    ; x ^= w[i-16];    
+    ; x ^= w[i-16];
     xor     eax, [edi-16*4]
     ; x ^= w[i-9];
     xor     eax, [edi- 9*4]
     ; y ^= w[i-6];
-    xor     ebx, [edi- 6*4]    
+    xor     ebx, [edi- 6*4]
     ; x ^= ROTL32(x, 15) ^ ROTL32(x, 23);
     mov     edx, eax
     rol     edx, 15
@@ -250,18 +250,18 @@ s3t_l1:
     xor     eax, edx
     ; x ^= y;
     xor     eax, ebx
-    ; w[i] = x;    
+    ; w[i] = x;
     stosd
     loop    s3t_l1
-    
+
     ; permute message
     mov     edi, esp
 s3t_l2:
     ; t  = (i < 16) ? 0x79cc4519 : 0x7a879d8a;
     cmp     ecx, 16
-	  sbb	    eax, eax
-	  and	    eax, 0x79cc4519 - 0x7a879d8a
-	  add	    eax, 0x7a879d8a
+    sbb     eax, eax
+    and     eax, 0x79cc4519 - 0x7a879d8a
+    add     eax, 0x7a879d8a
     ; ss2 = ROTL32(a, 12);
     mov     ebx, _a
     rol     ebx, 12
@@ -278,7 +278,7 @@ s3t_l2:
     mov     edx, esi         ; save w[i]
     xor     esi, [edi+4*ecx+32+16]    ; esi ^= w[i+4]
     add     esi, _d
-    lea     eax, [esi+ebx]   ; set tt1   
+    lea     eax, [esi+ebx]   ; set tt1
     ; tt2 = h + ss1 + w[i];
     lea     ebx, [edx+ebp]
     add     ebx, _h
@@ -296,7 +296,7 @@ s3t_l2:
     xor     edx, _e
     add     ebx, edx
     jmp     s3t_l4
-s3t_l3:    
+s3t_l3:
     ; tt1 += FF(a, b, c);
     mov     edx, _b
     or      edx, _a
@@ -304,14 +304,14 @@ s3t_l3:
     and     edx, _c
     and     ebp, _a
     or      edx, ebp
-    add     eax, edx    
+    add     eax, edx
     ; tt2 += GG(e, f, g);
     mov     edx, _g
     xor     edx, _f
     and     edx, _e
-    xor     edx, _g 
+    xor     edx, _g
     add     ebx, edx
-s3t_l4: 
+s3t_l4:
     ; d = c;
     mov     edx, _c
     mov     _d, edx
@@ -334,17 +334,17 @@ s3t_l4:
     ; f = e;
     mov     edx, _e
     mov     _f, edx
-    ; e = P0(tt2); 
+    ; e = P0(tt2);
     ; e = x ^ ROTL32(x,  9) ^ ROTL32(x, 17)
     mov     edx, ebx
     rol     edx, 9
     xor     ebx, edx
     rol     edx, 17-9
     xor     ebx, edx
-    mov     _e, ebx    
-  
+    mov     _e, ebx
+
     inc     ecx
-    cmp     ecx, 64    
+    cmp     ecx, 64
     jnz     s3t_l2
 
     mov     esi, esp
@@ -359,4 +359,4 @@ s3t_l5:
     loop    s3t_l5
     popad
     ret
-    
+
