@@ -31,8 +31,6 @@
 
 #define  F(x, y, z) (((x) ^ (y) ^ (z)))
 #define FF(x, y, z) (((x) & (y)) | ((x) & (z)) | ((y) & (z))) 
-
-#define GG(x, y, z) ((z)  ^ ((
 #define GG(x, y, z) ((z)  ^ ((x) & ((y) ^ (z))))
 
 #define P0(x) x ^ ROTL32(x,  9) ^ ROTL32(x, 17)
