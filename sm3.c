@@ -31,6 +31,8 @@
 
 #define  F(x, y, z) (((x) ^ (y) ^ (z)))
 #define FF(x, y, z) (((x) & (y)) | ((x) & (z)) | ((y) & (z))) 
+
+#define GG(x, y, z) ((z)  ^ ((
 #define GG(x, y, z) ((z)  ^ ((x) & ((y) ^ (z))))
 
 #define P0(x) x ^ ROTL32(x,  9) ^ ROTL32(x, 17)
@@ -77,6 +79,7 @@ void SM3_Transform (SM3_CTX *ctx)
 
     // compression function
     for (i=0; i<64; i++) {
+      
       t  = (i < 16) ? 0x79cc4519 : 0x7a879d8a;
       
       ss2 = ROTL32(a, 12);      
