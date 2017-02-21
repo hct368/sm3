@@ -173,7 +173,7 @@ void SM3_Final (void *out, SM3_CTX *ctx)
     int i;
     
     // get the current index
-    uint32_t idx=ctx->len & (SM3_CBLOCK - 1);
+    uint32_t idx = ctx->len & (SM3_CBLOCK - 1);
     // fill remaining with zeros
     memset (&ctx->buf.b[idx], 0, SM3_CBLOCK - idx);
     // add the end bit
@@ -187,8 +187,7 @@ void SM3_Final (void *out, SM3_CTX *ctx)
     // add total bits
     ctx->buf.q[7] = SWAP64((uint64_t)ctx->len * 8);
     // compress
-    SM3_Transform(ctx);
-    
+    SM3_Transform(ctx);    
     // return result
     for (i=0; i<SM3_LBLOCK; i++) {
       ((uint32_t*)out)[i] = SWAP32(ctx->s.w[i]);
